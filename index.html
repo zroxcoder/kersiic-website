@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Kersiic Management</title>
+<style>
+  :root{
+    --bg:#0f1220;
+    --bg-2:#161a2e;
+    --bg-3:#1e2340;
+    --card:#1a1f38;
+    --border:#2a3058;
+    --text:#e7e9f5;
+    --muted:#8a91b4;
+    --primary:#7c5cff;
+    --primary-2:#9d84ff;
+    --success:#22c55e;
+    --danger:#ef4444;
+    --warn:#f59e0b;
+    --info:#3b82f6;
+    --radius:12px;
+    --shadow:0 8px 24px rgba(0,0,0,.35);
+  }
+  [data-theme="light"]{
+    --bg:#f4f5fb;
+    --bg-2:#ffffff;
+    --bg-3:#eef0f8;
+    --card:#ffffff;
+    --border:#e3e6f0;
+    --text:#1a1d2e;
+    --muted:#5a6080;
+    --shadow:0 6px 18px rgba(20,20,60,.08);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+  a{color:var(--primary-2);text-decoration:none}
+  button{font-family:inherit;cursor:pointer}
+  input,select,textarea{font-family:inherit}
+
+  /* Layout */
+  .app{display:grid;grid-template-columns:250px 1fr;min-height:100vh}
+  .sidebar{background:var(--bg-2);border-right:1px solid var(--border);padding:20px 0;position:sticky;top:0;height:100vh;overflow-y:auto}
+  .brand{display:flex;align-items:center;gap:10px;padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:12px}
+  .brand-logo{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--primary),var(--primary-2));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:18px;box-shadow:var(--shadow)}
+  .brand-name{font-weight:700;font-size:16px}
+  .brand-sub{font-size:11px;color:var(--muted)}
+
+  .nav{display:flex;flex-direction:column;gap:2px;padding:0 10px}
+  .nav-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:10px;color:var(--muted);font-size:14px;cursor:pointer;transition:all .15s;border:none;background:transparent;text-align:left;width:100%}
+  .nav-item:hover{background:var(--bg-3);color:var(--text)}
+  .nav-item.active{background:linear-gradient(135deg,rgba(124,92,255,.18),rgba(124,92,255,.05));color:var(--text);box-shadow:inset 0 0 0 1px rgba(124,92,255,.3)}
+  .nav-item .icon{font-size:17px;width:22px;text-align:center}
+  .nav-section{padding:14px 20px 6px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+
+  .main{display:flex;flex-direction:column;min-width:0}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;background:var(--bg-2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50}
+  .search{flex:1;max-width:420px;position:relative}
+  .search input{width:100%;padding:10px 14px 10px 38px;background:var(--bg-3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;outline:none;transition:border .15s}
+  .search input:focus{border-color:var(--primary)}
+  .search::before{content:"🔍";position:absolute;left:12px;top:50%;transform:translateY(-50%);opacity:.6}
+  .topbar-actions{display:flex;gap:8px;align-items:center}
+  .icon-btn{width:38px;height:38px;border-radius:10px;background:var(--bg-3);border:1px solid var(--border);color:var(--text);display:flex;align-items:center;justify-content:center;font-size:16px}
+  .icon-btn:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+  .content{padding:24px;flex:1}
+  .page-title{font-size:22px;font-weight:700;margin:0 0 4px}
+  .page-sub{color:var(--muted);font-size:13px;margin-bottom:20px}
+
+  /* Cards */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:22px}
+  .stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+  .stat-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+  .stat-value{font-size:22px;font-weight:700}
+  .stat-trend{font-size:12px;margin-top:6px;color:var(--success)}
+  .stat-trend.down{color:var(--danger)}
+  .stat-icon{float:right;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px}
+  .bg-p{background:rgba(124,92,255,.15);color:var(--primary-2)}
+  .bg-s{background:rgba(34,197,94,.15);color:var(--success)}
+  .bg-d{background:rgba(239,68,68,.15);color:var(--danger)}
+  .bg-w{background:rgba(245,158,11,.15);color:var(--warn)}
+  .bg-i{background:rgba(59,130,246,.15);color:var(--info)}
+
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);margin-bottom:18px}
+  .panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  .panel-title{font-size:15px;font-weight:600;margin:0}
+
+  /* Buttons */
+  .btn{padding:9px 16px;border-radius:9px;border:1px solid var(--border);background:var(--bg-3);color:var(--text);font-size:13px;font-weight:500;display:inline-flex;align-items:center;gap:6px;transition:all .15s}
+  .btn:hover{background:var(--border)}
+  .btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;border:none}
+  .btn-primary:hover{filter:brightness(1.1);background:linear-gradient(135deg,var(--primary),var(--primary-2))}
+  .btn-danger{background:var(--danger);color:#fff;border:none}
+  .btn-danger:hover{filter:brightness(1.1);background:var(--danger)}
+  .btn-ghost{background:transparent}
+  .btn-sm{padding:6px 10px;font-size:12px}
+
+  /* Table */
+  .table-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--border)}
+  th{background:var(--bg-3);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+  tbody tr:hover{background:var(--bg-3)}
+  tbody tr:last-child td{border-bottom:none}
+
+  .badge{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:600}
+  .badge-success{background:rgba(34,197,94,.15);color:var(--success)}
+  .badge-danger{background:rgba(239,68,68,.15);color:var(--danger)}
+  .badge-warn{background:rgba(245,158,11,.15);color:var(--warn)}
+  .badge-info{background:rgba(59,130,246,.15);color:var(--info)}
+  .badge-muted{background:var(--bg-3);color:var(--muted)}
+
+  /* Forms */
+  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+  .field{display:flex;flex-direction:column;gap:5px}
+  .field label{font-size:12px;color:var(--muted);font-weight:500}
+  .field input,.field select,.field textarea{padding:9px 12px;background:var(--bg-3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;transition:border .15s}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--primary)}
+  .field textarea{resize:vertical;min-height:70px}
+
+  /* Modal */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:100;padding:20px;backdrop-filter:blur(4px)}
+  .modal-backdrop.show{display:flex}
+  .modal{background:var(--card);border:1px solid var(--border);border-radius:14px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow)}
+  .modal-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+  .modal-body{padding:20px}
+  .modal-foot{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+  .close-x{background:transparent;border:none;color:var(--muted);font-size:22px;cursor:pointer}
+  .close-x:hover{color:var(--danger)}
+
+  /* Toast */
+  .toasts{position:fixed;top:20px;right:20px;display:flex;flex-direction:column;gap:8px;z-index:200}
+  .toast{background:var(--card);border:1px solid var(--border);border-left:4px solid var(--primary);padding:12px 16px;border-radius:10px;min-width:240px;box-shadow:var(--shadow);animation:slideIn .25s ease;font-size:13px}
+  .toast.success{border-left-color:var(--success)}
+  .toast.error{border-left-color:var(--danger)}
+  .toast.warn{border-left-color:var(--warn)}
+  @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+  /* Charts */
+  .chart-row{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+  @media(max-width:900px){.chart-row{grid-template-columns:1fr}}
+  canvas{width:100%;height:220px}
+
+  /* Empty state */
+  .empty{text-align:center;padding:40px 20px;color:var(--muted)}
+  .empty-icon{font-size:40px;margin-bottom:10px;opacity:.5}
+
+  /* Toolbar */
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+  .toolbar .search{max-width:260px}
+
+  /* Login */
+  .login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:500}
+  .login-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px;width:100%;max-width:380px;text-align:center;box-shadow:var(--shadow)}
+  .login-card h1{margin:0 0 6px;font-size:22px}
+  .login-card p{color:var(--muted);margin:0 0 22px;font-size:13px}
+  .login-card input{width:100%;padding:12px;background:var(--bg-3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;margin-bottom:12px;text-align:center;letter-spacing:4px}
+  .login-card button{width:100%;padding:12px;background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;border:none;border-radius:10px;font-weight:600}
+
+  /* Mobile */
+  @media(max-width:768px){
+    .app{grid-template-columns:1fr}
+    .sidebar{position:fixed;left:-260px;width:250px;transition:left .25s;z-index:100}
+    .sidebar.open{left:0}
+    .menu-toggle{display:flex!important}
+  }
+  .menu-toggle{display:none}
+</style>
+</head>
+<body>
+
+<!-- Login Screen -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--primary-2));margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:22px">K</div>
+    <h1>Kersiic Management</h1>
+    <p>Enter your PIN to continue</p>
+    <input type="password" id="pinInput" placeholder="••••" maxlength="6" />
+    <button onclick="tryLogin()">Unlock</button>
+    <p style="margin-top:14px;font-size:11px">Default PIN: <b>1234</b> (change in Settings)</p>
+  </div>
+</div>
+
+<!-- Main App -->
+<div class="app" id="app" style="display:none">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-logo">K</div>
+      <div>
+        <div class="brand-name">Kersiic</div>
+        <div class="brand-sub">Management Suite</div>
+      </div>
+    </div>
+    <nav class="nav">
+      <div class="nav-section">Overview</div>
+      <button class="nav-item active" data-page="dashboard"><span class="icon">📊</span> Dashboard</button>
+
+      <div class="nav-section">Operations</div>
+      <button class="nav-item" data-page="inventory"><span class="icon">📦</span> Inventory</button>
+      <button class="nav-item" data-page="orders"><span class="icon">🛒</span> Orders</button>
+      <button class="nav-item" data-page="transactions"><span class="icon">💰</span> Transactions</button>
+
+      <div class="nav-section">People</div>
+      <button class="nav-item" data-page="customers"><span class="icon">👥</span> Customers</button>
+      <button class="nav-item" data-page="suppliers"><span class="icon">🏭</span> Suppliers</button>
+
+      <div class="nav-section">Data</div>
+      <button class="nav-item" data-page="reports"><span class="icon">📈</span> Reports</button>
+      <button class="nav-item" data-page="categories"><span class="icon">🏷️</span> Categories</button>
+      <button class="nav-item" data-page="settings"><span class="icon">⚙️</span> Settings</button>
+    </nav>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <button class="icon-btn menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+      <div class="search"><input id="globalSearch" placeholder="Search anything..." /></div>
+      <div class="topbar-actions">
+        <button class="icon-btn" onclick="toggleTheme()" title="Toggle theme">🌓</button>
+        <button class="icon-btn" onclick="exportAll()" title="Backup">💾</button>
+      </div>
+    </div>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-backdrop" id="modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="panel-title" id="modalTitle">Title</div>
+      <button class="close-x" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot" id="modalFoot"></div>
+  </div>
+</div>
+
+<!-- Toasts -->
+<div class="toasts" id="toasts"></div>
+
+<script>
+/* =========================================================
+   IndexedDB Wrapper
+   ========================================================= */
+const DB_NAME = 'kersiic_db';
+const DB_VERSION = 1;
+const STORES = ['products','transactions','customers','suppliers','orders','categories','settings'];
+let db;
+
+function openDB(){
+  return new Promise((resolve,reject)=>{
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      STORES.forEach(s=>{
+        if(!d.objectStoreNames.contains(s)){
+          d.createObjectStore(s,{keyPath:'id',autoIncrement:true});
+        }
+      });
+    };
+    req.onsuccess = e => { db = e.target.result; resolve(db); };
+    req.onerror = e => reject(e);
+  });
+}
+
+function tx(store, mode='readonly'){
+  return db.transaction(store, mode).objectStore(store);
+}
+function dbAdd(store, obj){ return new Promise((res,rej)=>{ const r=tx(store,'readwrite').add(obj); r.onsuccess=()=>res(r.result); r.onerror=rej; }); }
+function dbPut(store, obj){ return new Promise((res,rej)=>{ const r=tx(store,'readwrite').put(obj); r.onsuccess=()=>res(r.result); r.onerror=rej; }); }
+function dbDel(store, id){ return new Promise((res,rej)=>{ const r=tx(store,'readwrite').delete(id); r.onsuccess=res; r.onerror=rej; }); }
+function dbGet(store, id){ return new Promise((res,rej)=>{ const r=tx(store).get(id); r.onsuccess=()=>res(r.result); r.onerror=rej; }); }
+function dbAll(store){ return new Promise((res,rej)=>{ const r=tx(store).getAll(); r.onsuccess=()=>res(r.result||[]); r.onerror=rej; }); }
+function dbClear(store){ return new Promise((res,rej)=>{ const r=tx(store,'readwrite').clear(); r.onsuccess=res; r.onerror=rej; }); }
+
+/* =========================================================
+   Utilities
+   ========================================================= */
+const fmt = n => new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:2}).format(n||0);
+const fmtDate = d => new Date(d).toLocaleString();
+const today = () => new Date().toISOString().slice(0,10);
+const uid = () => Date.now() + Math.floor(Math.random()*1000);
+
+function toast(msg, type='info'){
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(()=>el.remove(), 3200);
+}
+
+function openModal(title, bodyHTML, footHTML){
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').innerHTML = bodyHTML;
+  document.getElementById('modalFoot').innerHTML = footHTML || '';
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal(){ document.getElementById('modal').classList.remove('show'); }
+
+/* =========================================================
+   Auth
+   ========================================================= */
+async function tryLogin(){
+  const pin = document.getElementById('pinInput').value;
+  const settings = await dbAll('settings');
+  const saved = settings.find(s=>s.key==='pin');
+  const expected = saved ? saved.value : '1234';
+  if(pin === expected){
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'grid';
+    loadPage('dashboard');
+  } else {
+    toast('Incorrect PIN','error');
+  }
+}
+document.getElementById('pinInput').addEventListener('keydown', e=>{ if(e.key==='Enter') tryLogin(); });
+
+/* =========================================================
+   Theme
+   ========================================================= */
+async function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  const s = await dbAll('settings');
+  const existing = s.find(x=>x.key==='theme');
+  if(existing){ existing.value = next; await dbPut('settings', existing); }
+  else await dbAdd('settings',{key:'theme',value:next});
+}
+(async()=>{
+  const s = await dbAll('settings');
+  const t = s.find(x=>x.key==='theme');
+  if(t) document.documentElement.setAttribute('data-theme', t.value);
+})();
+
+/* =========================================================
+   Navigation
+   ========================================================= */
+document.querySelectorAll('.nav-item').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    loadPage(btn.dataset.page);
+    if(window.innerWidth<768) document.getElementById('sidebar').classList.remove('open');
+  });
+});
+
+async function loadPage(page){
+  const c = document.getElementById('content');
+  c.innerHTML = '<div class="empty"><div class="empty-icon">⏳</div>Loading...</div>';
+  const pages = { dashboard:renderDashboard, inventory:renderInventory, orders:renderOrders,
+    transactions:renderTransactions, customers:renderCustomers, suppliers:renderSuppliers,
+    reports:renderReports, categories:renderCategories, settings:renderSettings };
+  if(pages[page]) await pages[page]();
+}
+
+/* =========================================================
+   DASHBOARD
+   ========================================================= */
+async function renderDashboard(){
+  const products = await dbAll('products');
+  const trans = await dbAll('transactions');
+  const orders = await dbAll('orders');
+  const customers = await dbAll('customers');
+
+  const credit = trans.filter(t=>t.type==='credit').reduce((a,b)=>a+Number(b.amount),0);
+  const debit = trans.filter(t=>t.type==='debit').reduce((a,b)=>a+Number(b.amount),0);
+  const stockValue = products.reduce((a,p)=>a+Number(p.cost||0)*Number(p.quantity||0),0);
+  const lowStock = products.filter(p=>Number(p.quantity)<=Number(p.lowStock||5)).length;
+
+  document.getElementById('content').innerHTML = `
+    <h1 class="page-title">Dashboard</h1>
+    <div class="page-sub">Welcome back — here's what's happening today, ${new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'})}</div>
+
+    <div class="stats">
+      <div class="stat"><div class="stat-icon bg-s">💰</div>
+        <div class="stat-label">Total Revenue</div><div class="stat-value">${fmt(credit)}</div>
+        <div class="stat-trend">${trans.filter(t=>t.type==='credit').length} transactions</div></div>
+      <div class="stat"><div class="stat-icon bg-d">💸</div>
+        <div class="stat-label">Total Expenses</div><div class="stat-value">${fmt(debit)}</div>
+        <div class="stat-trend down">${trans.filter(t=>t.type==='debit').length} transactions</div></div>
+      <div class="stat"><div class="stat-icon bg-p">📈</div>
+        <div class="stat-label">Net Profit</div><div class="stat-value">${fmt(credit-debit)}</div>
+        <div class="stat-trend">${((credit-debit)/(credit||1)*100).toFixed(1)}% margin</div></div>
+      <div class="stat"><div class="stat-icon bg-w">📦</div>
+        <div class="stat-label">Stock Value</div><div class="stat-value">${fmt(stockValue)}</div>
+        <div class="stat-trend">${products.length} products</div></div>
+      <div class="stat"><div class="stat-icon bg-i">🛒</div>
+        <div class="stat-label">Orders</div><div class="stat-value">${orders.length}</div>
+        <div class="stat-trend">${orders.filter(o=>o.status==='Pending').length} pending</div></div>
+      <div class="stat"><div class="stat-icon bg-w">⚠️</div>
+        <div class="stat-label">Low Stock</div><div class="stat-value">${lowStock}</div>
+        <div class="stat-trend down">items need restock</div></div>
+    </div>
+
+    <div class="chart-row">
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">Last 7 Days Revenue</div></div>
+        <canvas id="chartSales" height="220"></canvas>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">Top Categories</div></div>
+        <canvas id="chartCat" height="220"></canvas>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">Recent Transactions</div>
+        <button class="btn btn-sm" onclick="document.querySelector('[data-page=transactions]').click()">View all →</button>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Date</th><th>Type</th><th>Category</th><th>Note</th><th style="text-align:right">Amount</th></tr></thead>
+        <tbody>${trans.sort((a,b)=>b.id-a.id).slice(0,8).map(t=>`
+          <tr><td>${fmtDate(t.date)}</td>
+          <td><span class="badge ${t.type==='credit'?'badge-success':'badge-danger'}">${t.type.toUpperCase()}</span></td>
+          <td>${t.category||'-'}</td><td>${t.note||'-'}</td>
+          <td style="text-align:right;font-weight:600;color:${t.type==='credit'?'var(--success)':'var(--danger)'}">
+            ${t.type==='credit'?'+':'-'}${fmt(t.amount)}</td></tr>`).join('') ||
+          '<tr><td colspan="5" class="empty">No transactions yet</td></tr>'}
+        </tbody>
+      </table></div>
+    </div>
+  `;
+
+  drawSalesChart(trans);
+  drawCategoryChart(trans);
+}
+
+function drawSalesChart(trans){
+  const canvas = document.getElementById('chartSales'); if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width = canvas.offsetWidth; const h = canvas.height = 220;
+  ctx.clearRect(0,0,w,h);
+  const days = [];
+  for(let i=6;i>=0;i--){
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const key = d.toISOString().slice(0,10);
+    const sum = trans.filter(t=>t.type==='credit' && t.date.slice(0,10)===key).reduce((a,b)=>a+Number(b.amount),0);
+    days.push({label:d.toLocaleDateString('en',{weekday:'short'}), value:sum});
+  }
+  const max = Math.max(...days.map(d=>d.value),1);
+  const pad = 30; const bw = (w-pad*2)/days.length;
+  ctx.strokeStyle = 'rgba(138,145,180,.2)';
+  for(let i=0;i<=4;i++){ const y=pad+(h-pad*2)*i/4; ctx.beginPath(); ctx.moveTo(pad,y); ctx.lineTo(w-pad,y); ctx.stroke(); }
+  days.forEach((d,i)=>{
+    const bh = (d.value/max)*(h-pad*2);
+    const x = pad + i*bw + bw*0.2;
+    const y = h-pad-bh;
+    const grad = ctx.createLinearGradient(0,y,0,h-pad);
+    grad.addColorStop(0,'#9d84ff'); grad.addColorStop(1,'#7c5cff');
+    ctx.fillStyle = grad;
+    ctx.fillRect(x,y,bw*0.6,bh);
+    ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--muted');
+    ctx.font = '11px system-ui'; ctx.textAlign='center';
+    ctx.fillText(d.label, x+bw*0.3, h-pad+14);
+  });
+}
+
+function drawCategoryChart(trans){
+  const canvas = document.getElementById('chartCat'); if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width = canvas.offsetWidth; const h = canvas.height = 220;
+  ctx.clearRect(0,0,w,h);
+  const cats = {};
+  trans.filter(t=>t.type==='credit').forEach(t=>{ cats[t.category||'Other'] = (cats[t.category||'Other']||0)+Number(t.amount); });
+  const entries = Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const total = entries.reduce((a,b)=>a+b[1],0) || 1;
+  const colors = ['#7c5cff','#22c55e','#f59e0b','#3b82f6','#ef4444'];
+  let angle = -Math.PI/2;
+  const cx = w/2-60, cy = h/2, r = 70;
+  entries.forEach((e,i)=>{
+    const slice = (e[1]/total)*Math.PI*2;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,angle,angle+slice);
+    ctx.fillStyle = colors[i%colors.length]; ctx.fill();
+    angle += slice;
+  });
+  ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--card');
+  ctx.beginPath(); ctx.arc(cx,cy,40,0,Math.PI*2); ctx.fill();
+  // legend
+  entries.forEach((e,i)=>{
+    const y = 30 + i*22;
+    ctx.fillStyle = colors[i%colors.length];
+    ctx.fillRect(w-130, y, 12, 12);
+    ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--text');
+    ctx.font = '12px system-ui'; ctx.textAlign='left';
+    ctx.fillText(e[0], w-112, y+10);
+  });
+}
+
+/* =========================================================
+   INVENTORY
+   ========================================================= */
+async function renderInventory(){
+  const products = await dbAll('products');
+  const categories = await dbAll('categories').then(c=>c.filter(x=>x.type==='product'));
+  document.getElementById('content').innerHTML = `
+    <h1 class="page-title">Inventory</h1>
+    <div class="page-sub">Manage your products and stock levels</div>
+    <div class="toolbar">
+      <div class="search"><input id="invSearch" placeholder="Search products..." /></div>
+      <select id="invFilter" class="btn"><option value="">All Categories</option>
+        ${categories.map(c=>`<option value="${c.name}">${c.name}</option>`).join('')}</select>
+      <button class="btn btn-primary" onclick="editProduct()">+ Add Product</button>
+    </div>
+    <div class="panel" style="padding:0">
+      <div class="table-wrap"><table>
+        <thead><tr><th>Product</th><th>SKU</th><th>Category</th><th>Cost</th><th>Price</th><th>Stock</th><th>Status</th><th></th></tr></thead>
+        <tbody id="invBody"></tbody>
+      </table></div>
+    </div>`;
+  const renderRows = (list)=>{
+    document.getElementById('invBody').innerHTML = list.length ? list.map(p=>{
+      const low = Number(p.quantity) <= Number(p.lowStock||5);
+      return `<tr>
+        <td><b>${p.name}</b></td>
+        <td>${p.sku||'-'}</td>
+        <td><span class="badge badge-muted">${p.category||'-'}</span></td>
+        <td>${fmt(p.cost)}</td><td>${fmt(p.price)}</td>
+        <td>${p.quantity}</td>
+        <td><span class="badge ${low?'badge-warn':'badge-success'}">${low?'Low Stock':'In Stock'}</span></td>
+        <td style="text-align:right">
+          <button class="btn btn-sm" onclick="editProduct(${p.id})">Edit</button>
+          <button class="btn btn-sm btn-danger" onclick="delProduct(${p.id})">Delete</button>
+        </td></tr>`;
+    }).join('') : '<tr><td colspan="8" class="empty"><div class="empty-icon">📦</div>No products yet. Click "Add Product" to start.</td></tr>';
+  };
+  renderRows(products);
+  document.getElementById('invSearch').oninput = applyFilter;
+  document.getElementById('invFilter').onchange = applyFilter;
+  function applyFilter(){
+    const q = document.getElementById('invSearch').value.toLowerCase();
+    const cat = document.getElementById('invFilter').value;
+    renderRows(products.filter(p=>(!q||p.name.toLowerCase().includes(q)||(p.sku||'').toLowerCase().includes(q)))
+      .filter(p=>!cat||p.category===cat));
+  }
+}
+
+async function editProduct(id){
+  const p = id ? await dbGet('products',id) : {name:'',sku:'',category:'',cost:0,price:0,quantity:0,lowStock:5,description:''};
+  const categories = await dbAll('categories').then(c=>c.filter(x=>x.type==='product'));
+  openModal(id?'Edit Product':'Add Product', `
+    <div class="form-grid">
+      <div class="field"><label>Product Name *</label><input id="f_name" value="${p.name||''}" /></div>
+      <div class="field"><label>SKU</label><input id="f_sku" value="${p.sku||''}" /></div>
+      <div class="field"><label>Category</label><select id="f_cat">
+        <option value="">-- None --</option>
+        ${categories.map(c=>`<option ${p.category===c.name?'selected':''}>${c.name}</option>`).join('')}
+      </select></div>
+      <div class="field"><label>Cost Price</label><input type="number" id="f_cost" value="${p.cost||0}" /></div>
+      <div class="field"><label>Selling Price</label><input type="number" id="f_price" value="${p.price||0}" /></div>
+      <div class="field"><label>Quantity</label><input type="number" id="f_qty" value="${p.quantity||0}" /></div>
+      <div class="field"><label>Low Stock Alert</label><input type="number" id="f_low" value="${p.lowStock||5}" /></div>
+      <div class="field" style="grid-column:1/-1"><label>Description</label><textarea id="f_desc">${p.description||''}</textarea></div>
+    </div>
+  `, `<button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveProduct(${id||'null'})">Save</button>`);
+}
+
+async function saveProduct(id){
+  const data = {
+    name: document.getElementById('f_name').value.trim(),
+    sku: document.getElementById('f_sku').value.trim(),
+    category: document.getElementById('f_cat').value,
+    cost: +document.getElementById('f_cost').value||0,
+    price: +document.getElementById('f_price').value||0,
+    quantity: +document.getElementById('f_qty').value||0,
+    lowStock: +document.getElementById('f_low').value||5,
+    description: document.getElementById('f_desc').value,
+    updatedAt: Date.now()
+  };
+  if(!data.name){ toast('Name is required','error'); return; }
+  if(id){ data.id = id; await dbPut('products',data); toast('Product updated','success'); }
+  else { data.createdAt = Date.now(); await dbAdd('products',data); toast('Product added','success'); }
+  closeModal(); renderInventory();
+}
+
+async function delProduct(id){
+  if(!confirm('Delete this product?')) return;
+  await dbDel('products',id); toast('Product deleted','success'); renderInventory();
+}
+
+/* =========================================================
+   TRANSACTIONS
+   ========================================================= */
+async function renderTransactions(){
+  const trans = await dbAll('transactions');
+  const cats = await dbAll('categories').then(c=>c.filter(x=>x.type==='transaction'));
+  document.getElementById('content').innerHTML = `
+    <h1 class="page-title">Transactions</h1>
+    <div class="page-sub">Track every debit and credit — your full ledger</div>
+    <div class="toolbar">
+      <div class="search"><input id="tSearch" placeholder="Search..." /></div>
+      <select id="tType" class="btn"><option value="">All Types</option><option value="credit">Credit</option><option value="debit">Debit</option></select>
+      <select id="tCat" class="btn"><option value="">All Categories</option>
+        ${cats.map(c=>`<option>${c.name}</option>`).join('')}</select>
+      <button class="btn btn-primary" onclick="editTransaction()">+ New Transaction</button>
+    </div>
+    <div class="panel" style="padding:0">
+      <div class="table-wrap"><table>
+        <thead><tr><th>Date</th><th>Type</th><th>Category</th><th>Note</th><th>Method</th><th style="text-align:right">Amount</th><th></th></tr></thead>
+        <tbody id="tBody"></tbody>
+      </table></div>
+    </div>`;
+  const render = (list)=>{
+    let bal = 0;
+    const sorted = list.sort((a,b)=>new Date(b.date)-new Date(a.date));
+    document.getElementById('tBody').innerHTML = sorted.length ? sorted.map(t=>{
+      return `<tr>
+        <td>${fmtDate(t.date)}</td>
+        <td><span class="badge ${t.type==='credit'?'badge-success':'badge-danger'}">${t.type.toUpperCase()}</span></td>
+        <td>${t.category||'-'}</td>
+        <td>${t.note||'-'}</td>
+        <td>${t.method||'-'}</td>
+        <td style="text-align:right;font-weight:600;color:${t.type==='credit'?'var(--success)':'var(--danger)'}">
+          ${t.type==='credit'?'+':'-'}${fmt(t.amount)}</td>
+        <td style="text-align:right">
+          <button class="btn btn-sm" onclick="editTransaction(${t.id})">Edit</button>
+          <button class="btn btn-sm btn-danger" onclick="delTransaction(${t.id})">×</button>
+        </td></tr>`;
+    }).join('') : '<tr><td colspan="7" class="empty"><div class="empty-icon">💰</div>No transactions yet</td></tr>';
+  };
+  render(trans);
+  const apply = ()=>{
+    const q = document.getElementById('tSearch').value.toLowerCase();
+    const ty = document.getElementById('tType').value;
+    const ca = document.getElementById('tCat').value;
+    render(trans.filter(t=>(!q||(t.note||'').toLowerCase().includes(q))&&(!ty||t.type===ty)&&(!ca||t.category===ca)));
+  };
+  document.getElementById('tSearch').oninput = apply;
+  document.getElementById('tType').onchange = apply;
+  document.getElementById('tCat').onchange = apply;
+}
+
+async function editTransaction(id){
+  const t = id ? await dbGet('transactions',id) : {type:'credit',category:'',amount:0,method:'Cash',note:'',date:new Date().toISOString().slice(0,16)};
+  const cats = await dbAll('categories').then(c=>c.filter(x=>x.type==='transaction'));
+  openModal(id?'Edit Transaction':'New Transaction', `
+    <div class="form-grid">
+      <div class="field"><label>Type *</label><select id="f_type">
+        <option value="credit" ${t.type==='credit'?'selected':''}>Credit (Income)</option>
+        <option value="debit" ${t.type==='debit'?'selected':''}>Debit (Expense)</option>
+      </select></div>
+      <div class="field"><label>Amount *</label><input type="number" id="f_amt" value="${t.amount||0}" /></div>
+      <div class="field"><label>Category</label><select id="f_cat">
+        <option value="">-- None --</option>
+        ${cats.map(c=>`<option ${t.category===c.name?'selected':''}>${c.name}</option>`).join('')}
+      </select></div>
+      <div class="field"><label>Payment Method</label><select id="f_method">
+        ${['Cash','Bank','UPI','Card','Cheque'].map(m=>`<option ${t.method===m?'selected':''}>${m}</option>`).join('')}
+      </select></div>
+      <div class="field"><label>Date</label><input type="datetime-local" id="f_date" value="${t.date}" /></div>
+      <div class="field" style="grid-column:1/-1"><label>Note</label><textarea id="f_note">${t.note||''}</textarea></div>
+    </div>
+  `, `<button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTransaction(${id||'null'})">Save</button>`);
+}
+
+async function saveTransaction(id){
+  const data = {
+    type: document.getElementById('f_type').value,
+    amount: +document.getElementById('f_amt').value||0,
+    category: document.getElementById('f_cat').value,
+    method: document.getElementById('f_method').value,
+    date: new Date(document.getElementById('f_date').value).toISOString(),
+    note: document.getElementById('f_note').value,
+    updatedAt: Date.now()
+  };
+  if(!data.amount){ toast('Amount required','error'); return; }
+  if(id){ data.id = id; await dbPut('transactions',data); toast('Updated','success'); }
+  else { data.createdAt = Date.now(); await dbAdd('transactions',data); toast('Added','success'); }
+  closeModal(); renderTransactions();
+}
+
+async function delTransaction(id){
+  if(!confirm('Delete this transaction?')) return;
+  await dbDel('transactions',id); toast('Deleted','success'); renderTransactions();
+}
+
+/* =========================================================
+   CUSTOMERS
+   ========================================================= */
+async function renderCustomers(){
+  const list = await dbAll('customers');
+  const orders = await dbAll('orders');
+  document.getElementById('content').innerHTML = `
+    <h1 class="page-title">Customers</h1>
+    <div class="page-sub">Your customer directory</div>
+    <div class="toolbar">
+      <div class="search"><input id="cSearch" placeholder="Search..." /></div>
+      <button class="btn btn-primary" onclick="editCustomer()">+ Add Customer</button>
+    </div>
+    <div class="panel" style="padding:0"><div class="table-wrap"><table>
+      <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Orders</th><th>Total Spent</th><th></th></tr></thead>
+      <tbody id="cBody"></tbody>
+    </table></div></div>`;
+  const render = (arr)=>{
+    document.getElementById('cBody').innerHTML = arr.length ? arr.map(c=>{
+      const co = orders.filter(o=>o.customerId===c.id);
+      const total = co.reduce((a,b)=>a+Number(b.total||0),0);
+      return `<tr>
+        <td><b>${c.name}</b></td><td>${c.phone||'-'}</td><td>${c.email||'-'}</td>
+        <td>${co.length}</td><td>${fmt(total)}</td>
+        <td style="text-align:right">
+          <button class="btn btn-sm" onclick="editCustomer(${c.id})">Edit</button>
+          <button class="btn btn-sm btn-danger" onclick="delCustomer(${c.id})">×</button>
+        </td></tr>`;
+    }).join('') : '<tr><td colspan="6" class="empty"><div class="empty-icon">👥</div>No customers yet</td></tr>';
+  };
+  render(list);
+  document.getElementById('cSearch').oninput = e=>{
+    const q = e.target.value.toLowerCase();
+    render(list.filter(c=>c.name.toLowerCase().includes(q)||(c.phone||'').includes(q)));
+  };
+}
+
+async function editCustomer(id){
+  const c = id ? await dbGet('customers',id) : {name:'',phone:'',email:'',address:''};
+  openModal(id?'Edit Customer':'Add Customer', `
+    <div class="form-grid">
+      <div class="field"><label>Name *</label><input id="f_name" value="${c.name||''}" /></div>
+      <div class="field"><label>Phone</label><input id="f_phone" value="${c.phone||''}" /></div>
+      <div class="field"><label>Email</label><input id="f_email" value="${c.email||''}" /></div>
+      <div class="field" style="grid-column:1/-1"><label>Address</label><textarea id="f_addr">${c.address||''}</textarea></div>
+    </div>
+  `, `<button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCustomer(${id||'null'})">Save</button>`);
+}
+
+async function saveCustomer(id){
+  const data = {
+    name: document.getElementById('f_name').value.trim(),
+    phone: document.getElementById('f_phone').value.trim(),
+    email: document.getElementById('f_email').value.trim(),
+    address: document.getElementById('f_addr').value
+  };
+  if(!data.name){ toast('Name required','error'); return; }
+  if(id){ data.id=id; await dbPut('customers',data); toast('Updated','success'); }
+  else { data.createdAt=Date.now(); await dbAdd('customers',data); toast('Added','success'); }
+  closeModal(); renderCustomers();
+}
+
+async function delCustomer(id){ if(!confirm('Delete?'))return; await dbDel('customers',id); toast('Deleted','success'); renderCustomers(); }
+
+/* =========================================================
+   SUPPLIERS
+   ========================================================= */
+async function renderSuppliers(){
+  const list = await dbAll('suppliers');
+  document.getElementById('content').innerHTML = `
+    <h1 class="page-title">Suppliers</h1>
+    <div class="page-sub">Your supplier directory</div>
+    <div class="toolbar">
+      <div class="search"><input id="sSearch" placeholder="Search..." /></div>
+      <button class="btn btn-primary" onclick="editSupplier()">+ Add Supplier</button>
+    </div>
+    <div class="panel" style="padding:0"><div class="table-wrap"><table>
+      <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Address</th><th></th></tr></thead>
+      <tbody id="sBody"></tbody>
+    </table></div></div>`;
+  const render = (arr)=>{
+    document.getElementById('sBody').innerHTML = arr.length ? arr.map(s=>`
+      <tr><td><b>${s.name}</b></td><td>${s.phone||'-'}</td><td>${s.email||'-'}</td><td>${s.address||'-'}</td>
+      <td style="text-align:right">
+        <button class="btn btn-sm" onclick="editSupplier(${s.id})">Edit</button>
+        <button class="btn btn-sm btn-danger" onclick="delSupplier(${s.id})">×</button>
+      </td></tr>`).join('') : '<tr><td colspan="5" class="empty"><div class="empty-icon">🏭</div>No suppliers yet</td></tr>';
+  };
+  render(list);
+  document.getElementById('sSearch').oninput = e=>{
+    const q = e.target.value.toLowerCase();
+    render(list.filter(s=>s.name.toLowerCase().includes(q)));
+  };
+}
+
+async function editSupplier(id){
+  const s = id ? await dbGet('suppliers',id) : {name:'',phone:'',email:'',address:''};
+  openModal(id?'Edit Supplier':'Add Supplier', `
+    <div class="form-grid">
+      <div class="field"><label>Name *</label><input id="f_name" value="${s.name||''}" /></div>
+      <div class="field"><label>Phone</label><input id="f_phone" value="${s.phone||''}" /></div>
+      <div class="field"><label>Email</label><input id="f_email" value="${s.email||''}" /></div>
+      <div class="field" style="grid-column:1/-1"><label>Address</label><textarea id="f_addr">${s.address||''}</textarea></div>
+    </div>
+  `, `<button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSupplier(${id||'null'})">Save</button>`);
+}
+
+async function saveSupplier(id){
+  const data = {
+    name: document.getElementById('f_name').value.trim(),
+    phone: document.getElementById('f_phone').value.trim(),
+    email: document.getElementById('f_email').value.trim(),
+    address: document.getElementById('f_addr').value
+  };
+  if(!data.name){ toast('Name required','error'); return; }
+  if(id){ data.id=id; await dbPut('suppliers',data); }
+  else { data.createdAt=Date.now(); await dbAdd('suppliers',data); }
+  closeModal(); toast('Saved','success'); renderSuppliers();
+}
+async function delSupplier(id){ if(!confirm('Delete?'))return; await dbDel('suppliers',id); toast('Deleted','success'); renderSuppliers(); }
+
+/* =========================================================
+   ORDERS
+   ========================================================= */
+async function renderOrders(){
+  const orders = await dbAll('orders');
+  const customers = await dbAll('customers');
+  const products = await dbAll('products');
+  document.getElementById('content').innerHTML = `
+    <h1 class="page-title">Orders</h1>
+    <div class="page-sub">Manage customer orders</div>
+    <div class="toolbar">
+      <div class="search"><input id="oSearch" placeholder="Search..." /></div>
+      <select id="oStatus" class="btn">
+        <option value="">All Status</option>
+        <option>Pending</option><option>Processing</option><option>Shipped</option><option>Delivered</option><option>Cancelled</option>
+      </select>
+      <button class="btn btn-primary" onclick="editOrder()">+ New Order</button>
+    </div>
+    <div class="panel" style="padding:0"><div class="table-wrap"><table>
+      <thead><tr><th>Order #</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th>Date</th><th></th></tr></thead>
+      <tbody id="oBody"></tbody>
+    </table></div></div>`;
+  const render = (arr)=>{
+    document.getElementById('oBody').innerHTML = arr.length ? arr.sort((a,b)=>b.id-a.id).map(o=>{
+      const c = customers.find(x=>x.id===o.customerId);
+      const statusClass = {Pending:'badge-warn',Processing:'badge-info',Shipped:'badge-info',Delivered:'badge-success',Cancelled:'badge-danger'}[o.status]||'badge-muted';
+      return `<tr>
+        <td><b>#${o.id}</b></td>
+        <td>${c?c.name:'Walk-in'}</td>
+        <td>${(o.items||[]).length}</td>
+        <td>${fmt(o.total)}</td>
+        <td><span class="badge ${statusClass}">${o.status}</span></td>
+        <td>${fmtDate(o.date)}</td>
+        <td style="text-align:right">
+          <button class="btn btn-sm" onclick="editOrder(${o.id})">Edit</button>
+          <button class="btn btn-sm btn-danger" onclick="delOrder(${o.id})">×</button>
+        </td></tr>`;
+    }).join('') : '<tr><td colspan="7" class="empty"><div class="empty-icon">🛒</div>No orders yet</td></tr>';
+  };
+  render(orders);
+  const apply = ()=>{
+    const q = document.getElementById('oSearch').value.toLowerCase();
+    const st = document.getElementById('oStatus').value;
+    render(orders.filter(o=>(!q||String(o.id).includes(q))&&(!st||o.status===st)));
+  };
+  document.getElementById('oSearch').oninput = apply;
+  document.getElementById('oStatus').onchange = apply;
+}
+
+async function editOrder(id){
+  const o = id ? await dbGet('orders',id) : {customerId:'',items:[],status:'Pending',date:new Date().toISOString().slice(0,16),discount:0,tax:0,note:''};
+  const customers = await dbAll('customers');
+  const products = await dbAll('products');
+  openModal(id?`Order #${id}`:'New Order', `
+    <div class="form-grid">
+      <div class="field"><label>Customer</label><select id="f_cust">
+        <option value="">Walk-in</option>
+        ${customers.map(c=>`<option value="${c.id}" ${o.customerId===c.id?'selected':''}>${c.name}</option>`).join('')}
+      </select></div>
+      <div class="field"><label>Status</label><select id="f_status">
+        ${['Pending','Processing','Shipped','Delivered','Cancelled'].map(s=>`<option ${o.status===s?'selected':''}>${s}</option>`).join('')}
+      </select></div>
+      <div class="field"><label>Date</label><input type="datetime-local" id="f_date" value="${o.date}" /></div>
+      <div class="field"><label>Discount</label><input type="number" id="f_disc" value="${o.discount||0}" /></div>
+      <div class="field"><label>Tax %</label><input type="number" id="f_tax" value="${o.tax||0}" /></div>
+    </div>
+    <div style="margin-top:14px">
+      <label style="font-size:12px;color:var(--muted)">Items</label>
+      <div id="itemsList" style="margin-top:6px"></div>
+      <button class="btn btn-sm" onclick="addOrderItem()" style="margin-top:8px">+ Add Item</button>
+    </div>
+    <div style="margin-top:14px;padding:12px;background:var(--bg-3);border-radius:8px">
+      <div style="display:flex;justify-content:space-between"><span>Subtotal:</span><b id="subtotal">₹0</b></div>
+      <div style="display:flex;justify-content:space-between"><span>Tax:</span><b id="taxAmt">₹0</b></div>
+      <div style="display:flex;justify-content:space-between;font-size:16px;margin-top:6px"><span>Total:</span><b id="totalAmt" style="color:var(--primary-2)">₹0</b></div>
+    </div>
+    <div class="field" style="margin-top:12px"><label>Note</label><textarea id="f_note">${o.note||''}</textarea></div>
+  `, `<button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveOrder(${id||'null'})">Save Order</button>`);
+  window._orderProducts = products;
+  window._orderItems = o.items||[];
+  renderOrderItems();
+}
+
+function renderOrderItems(){
+  const products = window._orderProducts;
+  const items = window._orderItems;
+  document.getElementById('itemsList').innerHTML = items.length ? items.map((it,i)=>`
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;margin-bottom:6px;align-items:center">
+      <select onchange="window._orderItems[${i}].productId=+this.value;recalcOrder()">
+        <option value="">-- Product --</option>
+        ${products.map(p=>`<option value="${p.id}" ${it.productId===p.id?'selected':''}>${p.name} (${fmt(p.price)})</option>`).join('')}
+      </select>
+      <input type="number" placeholder="Qty" value="${it.qty||1}" min="1" onchange="window._orderItems[${i}].qty=+this.value;recalcOrder()" />
+      <input type="number" placeholder="Price" value="${it.price||0}" onchange="window._orderItems[${i}].price=+this.value;recalcOrder()" />
+      <button class="btn btn-sm btn-danger" onclick="window._orderItems.splice(${i},1);renderOrderItems()">×</button>
+    </div>`).join('') : '<div class="empty" style="padding:14px">No items added</div>';
+  recalcOrder();
+}
+function addOrderItem(){ window._orderItems.push({productId:'',qty:1,price:0}); renderOrderItems(); }
+function recalcOrder(){
+  const items = window._orderItems;
+  const sub = items.reduce((a,b)=>a+(Number(b.qty)||0)*(Number(b.price)||0),0);
+  const disc = +document.getElementById('f_disc').value||0;
+  const taxP = +document.getElementById('f_tax').value||0;
+  const afterDisc = sub - disc;
+  const taxAmt = afterDisc * taxP/100;
+  const total = afterDisc + taxAmt;
+  document.getElementById('subtotal').textContent = fmt(sub);
+  document.getElementById('taxAmt').textContent = fmt(taxAmt);
+  document.getElementById('totalAmt').textContent = fmt(total);
+}
+
+async function saveOrder(id){
+  const data = {
+    customerId: +document.getElementById('f_cust').value || null,
+    status: document.getElementById('f_status').value,
+    date: new Date(document.getElementById('f_date').value).toISOString(),
+    discount: +document.getElementById('f_disc').value||0,
+    tax: +document.getElementById('f_tax').value||0,
+    note: document.getElementById('f_note').value,
+    items: window._orderItems.filter(it=>it.productId),
+    updatedAt: Date.now()
+  };
+  const sub = data.items.reduce((a,b)=>a+(Number(b.qty)||0)*(Number(b.price)||0),0);
+  data.total = (sub - data.discount) * (1 + data.tax/100);
+
+  if(id){ data.id = id; await dbPut('orders',data); }
+  else { data.createdAt = Date.now(); await dbAdd('orders',data); }
+
+  // Auto-deduct stock on Delivered
+  if(data.status === 'Delivered'){
+    for(const it of data.items){
+      const p = await dbGet('products', it.productId);
+      if(p){ p.quantity = Math.max(0, Number(p.quantity) - Number(it.qty)); await dbPut('products',p); }
+    }
+  }
+  closeModal(); toast('Order saved','success'); renderOrders();
+}
+
+async function delOrder(id){ if(!confirm('Delete order?'))return; await dbDel('orders',id); toast('Deleted','success'); renderOrders(); }
+
+/* =========================================================
+   CATEGORIES
+   ========================================================= */
+async function renderCategories(){
+  const list = await dbAll('categories');
+  document.getElementById('content').innerHTML = `
+    <h1 class="page-title">Categories</h1>
+    <div class="page-sub">Organize products & transactions</div>
+    <div class="toolbar">
+      <button class="btn btn-primary" onclick="editCategory()">+ Add Category</button>
+    </div>
+    <div class="panel" style="padding:0"><div class="table-wrap"><table>
+      <thead><tr><th>Name</th><th>Type</th><th></th></tr></thead>
+      <tbody id="catBody"></tbody>
+    </table></div></div>`;
+  document.getElementById('catBody').innerHTML = list.length ? list.map(c=>`
+    <tr><td><b>${c.name}</b></td>
+    <td><span class="badge ${c.type==='product'?'badge-info':'badge-warn'}">${c.type}</span></td>
+    <td style="text-align:right">
+      <button class="btn btn-sm" onclick="editCategory(${c.id})">Edit</button>
+      <button class="btn btn-sm btn-danger" onclick="delCategory(${c.id})">×</button>
+    </td></tr>`).join('') : '<tr><td colspan="3" class="empty"><div class="empty-icon">🏷️</div>No categories</td></tr>';
+}
+
+async function editCategory(id){
+  const c = id ? await dbGet('categories',id) : {name:'',type:'product'};
+  openModal(id?'Edit Category':'Add Category', `
+    <div class="form-grid">
+      <div class="field"><label>Name *</label><input id="f_name" value="${c.name||''}" /></div>
+      <div class="field"><label>Type</label><select id="f_type">
+        <option value="product" ${c.type==='product'?'selected':''}>Product</option>
+        <option value="transaction" ${c.type==='transaction'?'selected':''}>Transaction</option>
+      </select></div>
+    </div>
+  `, `<button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCategory(${id||'null'})">Save</button>`);
+}
+async function saveCategory(id){
+  const data = { name:document.getElementById('f_name').value.trim(), type:document.getElementById('f_type').value };
+  if(!data.name){ toast('Name required','error'); return; }
+  if(id){ data.id=id; await dbPut('categories',data); }
+  else { await dbAdd('categories',data); }
+  closeModal(); toast('Saved','success'); renderCategories();
+}
+async function delCategory(id){ if(!confirm('Delete?'))return; await dbDel('categories',id); toast('Deleted','success'); renderCategories(); }
+
+/* =========================================================
+   REPORTS
+   ========================================================= */
+async function renderReports(){
+  const trans = await dbAll('transactions');
+  const orders = await dbAll('orders');
+  const products = await dbAll('products');
+
+  const credit = trans.filter(t=>t.type==='credit').reduce((a,b)=>a+Number(b.amount),0);
+  const debit = trans.filter(t=>t.type==='debit').reduce((a,b)=>a+Number(b.amount),0);
+  const stockVal = products.reduce((a,p)=>a+Number(p.cost||0)*Number(p.quantity||0),0);
+
+  // Top products
+  const prodCount = {};
+  orders.forEach(o=>(o.items||[]).forEach(it=>{
+    prodCount[it.productId] = (prodCount[it.productId]||0) + Number(it.qty);
+  }));
+  const topProds = await Promise.all(Object.entries(prodCount).sort((a,b)=>b[1]-a[1]).slice(0,5).map(async([pid,qty])=>{
+    const p = await dbGet('products',+pid);
+    return {name:p?p.name:'Unknown', qty};
+  }));
+
+  document.getElementById('content').innerHTML = `
+    <h1 class="page-title">Reports</h1>
+    <div class="page-sub">Business insights & analytics</div>
+    <div class="stats">
+      <div class="stat"><div class="stat-icon bg-s">💰</div><div class="stat-label">Total Revenue</div><div class="stat-value">${fmt(credit)}</div></div>
+      <div class="stat"><div class="stat-icon bg-d">💸</div><div class="stat-label">Total Expenses</div><div class="stat-value">${fmt(debit)}</div></div>
+      <div class="stat"><div class="stat-icon bg-p">📈</div><div class="stat-label">Net Profit</div><div class="stat-value">${fmt(credit-debit)}</div></div>
+      <div class="stat"><div class="stat-icon bg-w">📦</div><div class="stat-label">Stock Value</div><div class="stat-value">${fmt(stockVal)}</div></div>
+    </div>
+    <div class="chart-row">
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">Monthly Revenue (last 6 months)</div></div>
+        <canvas id="chartMonthly" height="220"></canvas>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">Top Selling Products</div></div>
+        ${topProds.length ? topProds.map((p,i)=>`
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+            <span>${i+1}. ${p.name}</span><b>${p.qty} sold</b>
+          </div>`).join('') : '<div class="empty">No sales yet</div>'}
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">Data Tools</div></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" onclick="exportAll()">💾 Export Full Backup (JSON)</button>
+        <button class="btn" onclick="exportCSV('transactions')">📄 Export Transactions (CSV)</button>
+        <button class="btn" onclick="exportCSV('products')">📄 Export Products (CSV)</button>
+        <button class="btn" onclick="exportCSV('orders')">📄 Export Orders (CSV)</button>
+        <label class="btn" style="cursor:pointer">📥 Import Backup<input type="file" accept=".json" style="display:none" onchange="importAll(event)" /></label>
+      </div>
+    </div>`;
+
+  // Monthly chart
+  const canvas = document.getElementById('chartMonthly'); if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width = canvas.offsetWidth; const h = canvas.height = 220;
+  ctx.clearRect(0,0,w,h);
+  const months = [];
+  for(let i=5;i>=0;i--){
+    const d = new Date(); d.setMonth(d.getMonth()-i);
+    const key = d.toISOString().slice(0,7);
+    const sum = trans.filter(t=>t.type==='credit'&&t.date.slice(0,7)===key).reduce((a,b)=>a+Number(b.amount),0);
+    months.push({label:d.toLocaleDateString('en',{month:'short'}), value:sum});
+  }
+  const max = Math.max(...months.map(m=>m.value),1);
+  const pad = 30; const bw = (w-pad*2)/months.length;
+  ctx.strokeStyle = 'rgba(138,145,180,.2)';
+  for(let i=0;i<=4;i++){ const y=pad+(h-pad*2)*i/4; ctx.beginPath(); ctx.moveTo(pad,y); ctx.lineTo(w-pad,y); ctx.stroke(); }
+  // Line chart
+  ctx.beginPath();
+  months.forEach((m,i)=>{
+    const x = pad + i*bw + bw/2;
+    const y = h-pad - (m.value/max)*(h-pad*2);
+    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  });
+  ctx.strokeStyle = '#7c5cff'; ctx.lineWidth = 2.5; ctx.stroke();
+  months.forEach((m,i)=>{
+    const x = pad + i*bw + bw/2;
+    const y = h-pad - (m.value/max)*(h-pad*2);
+    ctx.beginPath(); ctx.arc(x,y,4,0,Math.PI*2); ctx.fillStyle='#9d84ff'; ctx.fill();
+    ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--muted');
+    ctx.font = '11px system-ui'; ctx.textAlign='center';
+    ctx.fillText(m.label, x, h-pad+14);
+  });
+}
+
+async function exportAll(){
+  const data = {};
+  for(const s of STORES){ data[s] = await dbAll(s); }
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `kersiic-backup-${today()}.json`;
+  a.click();
+  toast('Backup downloaded','success');
+}
+
+async function importAll(e){
+  const file = e.target.files[0]; if(!file) return;
+  if(!confirm('This will replace ALL current data. Continue?')) return;
+  const text = await file.text();
+  try{
+    const data = JSON.parse(text);
+    for(const s of STORES){
+      if(data[s]){
+        await dbClear(s);
+        for(const item of data[s]) await dbAdd(s,item);
+      }
+    }
+    toast('Data imported successfully','success');
+    loadPage('dashboard');
+  }catch(err){ toast('Invalid backup file','error'); }
+}
+
+async function exportCSV(store){
+  const rows = await dbAll(store);
+  if(!rows.length){ toast('No data','warn'); return; }
+  const keys = Object.keys(rows[0]);
+  const csv = [keys.join(','), ...rows.map(r=>keys.map(k=>`"${(r[k]??'').toString().replace(/"/g,'""')}"`).join(','))].join('\n');
+  const blob = new Blob([csv],{type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${store}-${today()}.csv`;
+  a.click();
+  toast('CSV exported','success');
+}
+
+/* =========================================================
+   SETTINGS
+   ========================================================= */
+async function renderSettings(){
+  const all = await dbAll('settings');
+  const get = k => (all.find(s=>s.key===k)||{}).value || '';
+  document.getElementById('content').innerHTML = `
+    <h1 class="page-title">Settings</h1>
+    <div class="page-sub">Configure your business</div>
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">Business Info</div></div>
+      <div class="form-grid">
+        <div class="field"><label>Business Name</label><input id="s_biz" value="${get('businessName')||'Kersiic'}" /></div>
+        <div class="field"><label>Currency</label><input id="s_cur" value="${get('currency')||'INR'}" /></div>
+        <div class="field"><label>Default Tax %</label><input type="number" id="s_tax" value="${get('tax')||0}" /></div>
+        <div class="field"><label>Phone</label><input id="s_phone" value="${get('phone')||''}" /></div>
+        <div class="field" style="grid-column:1/-1"><label>Address</label><textarea id="s_addr">${get('address')||''}</textarea></div>
+      </div>
+      <button class="btn btn-primary" style="margin-top:14px" onclick="saveSettings()">Save Settings</button>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">Security</div></div>
+      <div class="form-grid">
+        <div class="field"><label>Change PIN (4-6 digits)</label><input type="password" id="s_pin" maxlength="6" placeholder="New PIN" /></div>
+      </div>
+      <button class="btn" style="margin-top:14px" onclick="changePin()">Update PIN</button>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">Danger Zone</div></div>
+      <p style="color:var(--muted);font-size:13px;margin:0 0 12px">These actions cannot be undone.</p>
+      <button class="btn btn-danger" onclick="resetAll()">🗑️ Reset All Data</button>
+    </div>`;
+}
+
+async function saveSettings(){
+  const keys = ['businessName','currency','tax','phone','address'];
+  const ids = ['s_biz','s_cur','s_tax','s_phone','s_addr'];
+  const all = await dbAll('settings');
+  for(let i=0;i<keys.length;i++){
+    const v = document.getElementById(ids[i]).value;
+    const existing = all.find(s=>s.key===keys[i]);
+    if(existing){ existing.value = v; await dbPut('settings',existing); }
+    else await dbAdd('settings',{key:keys[i],value:v});
+  }
+  toast('Settings saved','success');
+}
+
+async function changePin(){
+  const pin = document.getElementById('s_pin').value;
+  if(!/^\d{4,6}$/.test(pin)){ toast('PIN must be 4-6 digits','error'); return; }
+  const all = await dbAll('settings');
+  const existing = all.find(s=>s.key==='pin');
+  if(existing){ existing.value = pin; await dbPut('settings',existing); }
+  else await dbAdd('settings',{key:'pin',value:pin});
+  toast('PIN updated','success');
+  document.getElementById('s_pin').value='';
+}
+
+async function resetAll(){
+  if(!confirm('This will DELETE ALL DATA. Are you sure?')) return;
+  if(!confirm('Really? Last chance!')) return;
+  for(const s of STORES) await dbClear(s);
+  toast('All data cleared','success');
+  loadPage('dashboard');
+}
+
+/* =========================================================
+   Global Search
+   ========================================================= */
+document.getElementById('globalSearch').addEventListener('keydown', async e=>{
+  if(e.key!=='Enter') return;
+  const q = e.target.value.toLowerCase().trim();
+  if(!q) return;
+  const products = await dbAll('products');
+  const match = products.find(p=>p.name.toLowerCase().includes(q));
+  if(match){ document.querySelector('[data-page=inventory]').click(); setTimeout(()=>{
+    document.getElementById('invSearch').value = q;
+    document.getElementById('invSearch').dispatchEvent(new Event('input'));
+  },100); return; }
+  toast('No results','warn');
+});
+
+/* =========================================================
+   Seed default data on first run
+   ========================================================= */
+async function seed(){
+  const cats = await dbAll('categories');
+  if(cats.length===0){
+    const defaults = [
+      {name:'Electronics',type:'product'},{name:'Clothing',type:'product'},{name:'Groceries',type:'product'},
+      {name:'Sales',type:'transaction'},{name:'Purchase',type:'transaction'},
+      {name:'Salary',type:'transaction'},{name:'Rent',type:'transaction'},{name:'Utilities',type:'transaction'}
+    ];
+    for(const c of defaults) await dbAdd('categories',c);
+  }
+}
+
+/* =========================================================
+   Boot
+   ========================================================= */
+(async()=>{
+  await openDB();
+  await seed();
+})();
+</script>
+</body>
+</html>
